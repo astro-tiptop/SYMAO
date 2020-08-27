@@ -2,7 +2,7 @@ import numpy as np
 import sympy as sp
 from sympy import Sum, oo, IndexedBase, Function, I, symbols
 
-from sympyHelpers import *
+from SEEING.seeing import *
 
 r = sp.symbols('r', positive=True)
 rho = sp.symbols('rho', positive=True)

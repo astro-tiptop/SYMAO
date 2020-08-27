@@ -5,7 +5,7 @@ import random
 import sympy as sp
 from sympy import oo, IndexedBase, Function, I, symbols
 
-from sympyHelpers import *
+from SEEING.seeing import *
 #R_q = sp.Function("\U0000211B_q")(r)
 
 

@@ -1,7 +1,7 @@
 import sympy as sp
 
 from sympy import oo, I
-from sympyHelpers import *
+from SEEING.sympyHelpers import *
 
 x0, y0 = sp.symbols('x0, y0', real=True)
 x1, y1 = sp.symbols('x1, y1', real=True)
