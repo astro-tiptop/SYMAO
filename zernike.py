@@ -1,20 +1,8 @@
 import numpy as np
 import sympy as sp
-from sympy import Sum, oo, IndexedBase, Function, I, symbols
 
 from SEEING.seeing import *
 
-r = sp.symbols('r', positive=True)
-rho = sp.symbols('rho', positive=True)
-theta = sp.symbols('theta', real=True)
-lamda = sp.symbols('lambda', positive=True)
-l = sp.symbols('l', integer=True)
-j = sp.symbols('j', integer=True)
-
-n, m = sp.symbols('n m', integer=True)
-L = sp.symbols('L', integer=True)
-f = sp.symbols('f', real=True)
-x0, y0 = sp.symbols('x0, y0', real=True)
 
 def noll_to_zern(jj):
     if (jj == 0):
@@ -26,6 +14,19 @@ def noll_to_zern(jj):
         jj1 -= nn
     mm = (-1)**jj * ((nn % 2) + 2 * int((jj1 + ((nn + 1) % 2)) / 2.0))
     return nn, mm
+
+
+def order_to_max_noll(nn):
+    return (nn + 2) * (nn + 1) // 2
+
+
+def NollIndex(nn, mm):
+    n4 = nn % 4
+    if (mm > 0 and (n4 == 0 or n4 == 1)) or (mm < 0 and (n4 == 2 or n4 == 3)):
+        k = 0
+    else:
+        k = 1
+    return nn * (nn + 1) // 2 + abs(mm) + k
 
 
 def kronDelta(ii, jj):
@@ -41,216 +42,247 @@ def emValue(mm):
     else:
         return 1
 
-# Real Zernike Polynomials
 
+def createZernikeFormulary():
+    
+    r, rho = sp.symbols('r rho', positive=True)
+    aa = sp.symbols('a')
+    l, j, n, m, max_order = sp.symbols('l j n m n_max', integer=True)
+    vlj, theta, f, x0, y0 = sp.symbols('v_lj theta f x0, y0', real=True)
+    dotInt = sp.symbols('I_v')
+    Cnm = sp.symbols('c_n^m')
 
-def cCoeff(n, m):
-    return sp.Piecewise((sp.sqrt(n + 1), m == 0),
-                        (sp.sqrt(2 * (n + 1)), m != 0))
+    Tnm = sp.Function("T_n^m")(theta)
+    Rnm = sp.Function("R_n^m")(rho)
+    Znm = sp.Function("Z_n^m")(rho, theta)
+    Ynm = sp.Function("Y_n^m")(rho, theta)
+    ZnmCart = sp.Function("Z_n^m")(x0, y0)
+    VnmFunc = sp.Function("V_n^m")(r)
+    ZnmD = sp.Function("Z_n^m_d")(r, theta)
+    YnmD = sp.Function("Y_n^m_d")(r, theta)
+    f1 = sp.Function("f_1")(rho, theta)
+    f2 = sp.Function("f_2")(rho, theta)
 
-
-def tangetialFunc(m):
-    return sp.Piecewise((-sp.sin(m * theta), m < 0),
-                        (sp.cos(m * theta), m >= 0))
-
-
-def complexTangetialFunc(m):
-    return sp.exp(I * m * theta)
-
-
-def radialFunc(n, m):
-    ma = sp.Abs(m)
-    p = (n - ma) / 2
-# return sp.Piecewise( ( ((-1)**p) * (rho**ma) * sp.jacobi(p, ma, 0,
-# 1-2*rho**2), sp.Eq(sp.Mod(n-m, 2), 0) ), (0, sp.Eq(sp.Mod(n-m, 2), 1) )
-# )
-    return ((-1)**p) * (rho**ma) * sp.jacobi(p, ma, 0, 1 - 2 * rho**2)
-
-
-def realZernike(n, m):
-    return radialFunc(n, m) * tangetialFunc(m)
-
-
-def realZernikeCartesian(n, m, aa):
-    return realZernike(n,m).subs(rho,sp.sqrt(x0**2+y0**2)/aa).subs(theta,sp.atan2(x0,y0))
-
-
-def realZernikeNormalized(n, m):
-    return cCoeff(n, m) * realZernike(n, m)
-
-# Complex Zernike Polynomials
-
-
-def complexZernike(n, m):
-    return sp.sqrt(2) * radialFunc(n, m) * complexTangetialFunc(m) / 2
-
-
-def complexZernikeNormalized(n, m):
-    return sp.sqrt(n + 1) * radialFunc(n, m) * complexTangetialFunc(m)
-
-# with this wiegths and this transformation scheme, (realZernike,
-# complexZernike) and (realZernikeNormalized, complexZernikeNormalized)
-# are coerent
-
-
-def realZFromComplexZ(zcf, nn, mm):
-    zc1 = zcf(n, m).subs({m: mm, n: nn})
-    zc2 = zcf(n, m).subs({m: -mm, n: nn})
-    if mm >= 0:
-        return (zc1 + zc2) / np.sqrt(2)
-    elif mm < 0:
-        return 1j * (zc1 - zc2) / np.sqrt(2)    
     
     
-def _vlj(n, m, l, j):
-    p = (n - m) / 2
-    q = (n + m) / 2
-    return (-1)**p * (m + l + j * 2) * sp.binomial(m + j + l - 1,
-                                                   l - 1) * sp.binomial(j + l - 1,
-                                                                        l - 1) * sp.binomial(l - 1,
-                                                                                             p - j) / sp.binomial(q + l + j,
-                                                                                                                  l)
+    # Real Zernike Polynomials
+    def cCoeff():
+        _rhs = sp.Piecewise((sp.sqrt(n + 1), m == 0),
+                            (sp.sqrt(2 * (n + 1)), m != 0))
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
 
 
-def Vnm(n, m, f, max_order=10):
-    ma = sp.Abs(m)
-    p = (n - ma) / 2
-    q = (n + ma) / 2
-    return sp.exp(I * f) * sp.Sum((-2 * I * f)**(l - 1) * sp.Sum((-1)**p * (ma + l + j * 2) * sp.binomial(ma + j + l - 1,
-                                                                                                          l - 1) * sp.binomial(j + l - 1,
-                                                                                                                               l - 1) * sp.binomial(l - 1,
-                                                                                                                                                    p - j) / sp.binomial(q + l + j,
-                                                                                                                                                                         l) * (sp.besselj(ma + l + j * 2,
-                                                                                                                                                                                          2 * sp.pi * r) / (l * (2 * sp.pi * r)**l)),
-                                                                 (j,
-                                                                  0,
-                                                                  p)),
-                                  (l,
-                                   1,
-                                   max_order))
+
+    def tangetialFunc():
+        _rhs = sp.Piecewise((-sp.sin(m * theta), m < 0),
+                            (sp.cos(m * theta), m >= 0))
+        _lhs = Tnm
+        return sp.Eq(_lhs, _rhs)
 
 
-def diffractedZernikeAtFocus(n, m):
-    #    return ((-1)**((n+m)/2) * sp.besselj( n+1, 2*sp.pi*r) / (2*sp.pi*r) ) * tangetialFunc(m)
-    # return 2*sp.pi*(-1**(n+1)) * ( sp.besselj( n+1, 2*sp.pi*r) / (2*sp.pi*r)
-    # ) * sp.Piecewise( (-sp.sin(m*theta), m<0), (sp.cos(m*theta), m>=0) )
-    return 2 * sp.pi * (sp.besselj(n + 1, 2 * sp.pi * r) / (2 * sp.pi * r)) * \
-        sp.Piecewise((-sp.sin(m * theta), m < 0), (sp.cos(m * theta), m >= 0))
+    def complexTangetialFunc():
+        _rhs = sp.exp(sp.I * m * theta)
+        _lhs = Tnm
+        return sp.Eq(_lhs, _rhs)
 
 
-def diffractedComplexZernikeAtFocus(n, m):
-    # return 2*sp.pi* (-1**(n+1)) * ( sp.besselj( n+1, 2*sp.pi*r) /
-    # (2*sp.pi*r) ) * complexTangetialFunc(m) / sp.sqrt(2)
-    return 2 * sp.pi * (sp.besselj(n + 1, 2 * sp.pi * r) /
-                        (2 * sp.pi * r)) * complexTangetialFunc(m) / sp.sqrt(2)
+    def radialFunc():
+        ma = sp.Abs(m)
+        p = (n - ma) / 2
+    # return sp.Piecewise( ( ((-1)**p) * (rho**ma) * sp.jacobi(p, ma, 0,
+    # 1-2*rho**2), sp.Eq(sp.Mod(n-m, 2), 0) ), (0, sp.Eq(sp.Mod(n-m, 2), 1) )
+    # )
+        _rhs = ((-1)**p) * (rho**ma) * sp.jacobi(p, ma, 0, 1 - 2 * rho**2)
+        _lhs = Rnm
+        return sp.Eq(_lhs, _rhs)
 
 
-def diffractedZernike(n, m, f=sp.pi, max_order=10):
-    return 2 * Vnm(n, m, f, max_order) * tangetialFunc(m)
+    def realZernike():
+        _rhs = radialFunc().rhs * tangetialFunc().rhs
+        _lhs = Znm
+        return sp.Eq(_lhs, _rhs)
 
 
-def diffractedComplexZernike(n, m, f=sp.pi, max_order=10):
-    return 2 * Vnm(n, m, f, max_order) * complexTangetialFunc(m) / sp.sqrt(2)
+    def realZernikeCartesian():
+        _rhs = realZernike().rhs.subs(rho,sp.sqrt(x0**2+y0**2)/aa).subs(theta,sp.atan2(x0,y0))
+        _lhs = ZnmCart
+        return sp.Eq(_lhs, _rhs)
 
 
-def checkOrthoPair(f1, f2):
-    f2c = sp.conjugate(f2)
-    res = sp.integrate(f1 * f2 * r, (r, 0, 1), (theta, 0, 2 * sp.pi))
-    if (res != 0):
-        display(f1)
-        display(f2)
-    return res
+    def realZernikeNormalized():
+        _rhs = cCoeff().rhs * realZernike().rhs
+        _lhs = Znm
+        return sp.Eq(_lhs, _rhs)
+
+    # Complex Zernike Polynomials
 
 
-def checkZernikeOrthoPair(n1, m1, n2, m2):
-    f1 = realZernikeNormalized(n1, m1)
-    f2 = realZernikeNormalized(n2, m2)
-    return checkOrthoPair(f1, f2)
+    def complexZernike():
+        _rhs = sp.sqrt(2) * radialFunc().rhs * complexTangetialFunc().rhs / 2
+        _lhs = Ynm
+        return sp.Eq(_lhs, _rhs)
 
 
-def circleDotProduct(f1, f2):
-    f2c = sp.conjugate(f2)
-    itR = sp.re(f1 * f2c * rho) / sp.S.Pi
-    itI = sp.im(f1 * f2c * rho) / sp.S.Pi
-    i1 = sp.N(sp.integrate(itR, (theta, 0, 2 * sp.pi), (rho, 0, 1)))
-    i2 = sp.N(sp.integrate(itI, (theta, 0, 2 * sp.pi), (rho, 0, 1)))
-    return i1 + I * i2
+    def complexZernikeNormalized():
+        _rhs = sp.sqrt(n + 1) * radialFunc().rhs * complexTangetialFunc().rhs
+        _lhs = Ynm
+        return sp.Eq(_lhs, _rhs)
 
-# inputFunction defined over the unit disc, in ro, theta
-
-
-def zernikeAnalysysReal(inputFunction, max_noll):
-    result = [0] * max_noll
-    for ni in range(max_noll):
-        nn, mm = noll_to_zern(ni + 1)
-        z_ni = realZernikeNormalized(n, m).subs({m: int(mm), n: int(nn)})
-        result[ni] = circleDotProduct(inputFunction, z_ni)
-        print(ni + 1, nn, mm, result[ni] / emValue(mm))
-    return result
+    # with this wiegths and this transformation scheme, (realZernike,
+    # complexZernike) and (realZernikeNormalized, complexZernikeNormalized)
+    # are coerent
 
 
-def zernikeSynthesysReal(decomposition):
-    result = sp.S(0)
-    for ni, coefficient in enumerate(decomposition):
-        nn, mm = noll_to_zern(ni + 1)
-        z_ni = realZernikeNormalized(n, m).subs({m: int(mm), n: int(nn)})
-        result += coefficient * z_ni
-        print(ni + 1, nn, mm, coefficient)
-    return result
+#    def realZFromComplexZ(zcf, nn, mm):
+#        zc1 = zcf(n, m).subs({m: mm, n: nn})
+#        zc2 = zcf(n, m).subs({m: -mm, n: nn})
+#        if mm >= 0:
+#            _rhs = (zc1 + zc2) / np.sqrt(2)
+#        elif mm < 0:
+#            _rhs = 1j * (zc1 - zc2) / np.sqrt(2)    
+#        _lhs = Znm
+#        return sp.Eq(_lhs, _rhs)
 
 
-def zernikeAnalysysComplex(inputFunction, max_noll):
-    result = [0] * max_noll
-    for ni in range(max_noll):
-        nn, mm = noll_to_zern(ni + 1)
-        z_ni = complexZernikeNormalized(n, m).subs({m: mm, n: nn})
-        result[ni] = circleDotProduct(inputFunction, z_ni)
-        print(ni + 1, nn, mm, result[ni])
-    return result
+    def _vlj():
+        p = (n - m) / 2
+        q = (n + m) / 2
+        _rhs = (-1)**p * (m + l + j * 2) * sp.binomial(m + j + l - 1,
+                                                       l - 1) * sp.binomial(j + l - 1,
+                                                                            l - 1) * sp.binomial(l - 1,
+                                                                                                 p - j) / sp.binomial(q + l + j,
+                                                                                                                      l)
+        _lhs = vlj
+        return sp.Eq(_lhs, _rhs)
 
 
-def zernikeSynthesysComplex(decomposition):
-    result = sp.S(0)
-    for ni, coefficient in enumerate(decomposition):
-        nn, mm = noll_to_zern(ni + 1)
-        z_ni = complexZernikeNormalized(n, m).subs({m: mm, n: nn})
-        result += coefficient * z_ni
-        print(ni + 1, nn, -mm, coefficient)
-    return result
+    def Vnm():
+        ma = sp.Abs(m)
+        p = (n - ma) / 2
+        q = (n + ma) / 2
+        _rhs = sp.exp(sp.I * f) * sp.Sum((-2 * sp.I * f)**(l - 1) * sp.Sum((-1)**p * (ma + l + j * 2) * sp.binomial(ma + j + l - 1,
+                                                                                                              l - 1) * sp.binomial(j + l - 1,
+                                                                                                                                   l - 1) * sp.binomial(l - 1,
+                                                                                                                                                        p - j) / sp.binomial(q + l + j,
+                                                                                                                                                                             l) * (sp.besselj(ma + l + j * 2,
+                                                                                                                                                                                              2 * sp.pi * r) / (l * (2 * sp.pi * r)**l)),
+                                                                     (j,
+                                                                      0,
+                                                                      p)),
+                                      (l,
+                                       1,
+                                       max_order))
+        _lhs = VnmFunc
+        return sp.Eq(_lhs, _rhs)
 
 
-def capital_v_vector(max_noll, f):
-    result = [0] * max_noll
-    for ni in range(max_noll):
-        nn, mm = noll_to_zern(ni + 1)
-        z_ni = CVVZernike(nn, mm, rho, theta)
-        result[ni] = z_ni
-    return result
+    def diffractedZernikeAtFocus():
+        #    return ((-1)**((n+m)/2) * sp.besselj( n+1, 2*sp.pi*r) / (2*sp.pi*r) ) * tangetialFunc(m)
+        # return 2*sp.pi*(-1**(n+1)) * ( sp.besselj( n+1, 2*sp.pi*r) / (2*sp.pi*r)
+        # ) * sp.Piecewise( (-sp.sin(m*theta), m<0), (sp.cos(m*theta), m>=0) )
+        _rhs = 2 * sp.pi * (sp.besselj(n + 1, 2 * sp.pi * r) / (2 * sp.pi * r)) * \
+            sp.Piecewise((-sp.sin(m * theta), m < 0), (sp.cos(m * theta), m >= 0))
+        _lhs = ZnmD
+        return sp.Eq(_lhs, _rhs)
 
 
-def NollIndex(nn, mm):
-    n4 = nn % 4
-    if (mm > 0 and (n4 == 0 or n4 == 1)) or (mm < 0 and (n4 == 2 or n4 == 3)):
-        k = 0
-    else:
-        k = 1
-    return nn * (nn + 1) // 2 + abs(mm) + k
+    def diffractedComplexZernikeAtFocus():
+        # return 2*sp.pi* (-1**(n+1)) * ( sp.besselj( n+1, 2*sp.pi*r) /
+        # (2*sp.pi*r) ) * complexTangetialFunc(m) / sp.sqrt(2)
+        _rhs = 2 * sp.pi * (sp.besselj(n + 1, 2 * sp.pi * r) /
+                            (2 * sp.pi * r)) * complexTangetialFunc().rhs / sp.sqrt(2)
+        _lhs = YnmD
+        return sp.Eq(_lhs, _rhs)
 
 
-def order_to_max_noll(nn):
-    return (nn + 2) * (nn + 1) // 2
+    def diffractedZernike():
+        _rhs = 2 * Vnm().rhs * tangetialFunc().rhs
+        _lhs = ZnmD
+        return sp.Eq(_lhs, _rhs)
 
 
-def createZernikeFormulary(lastMode):
-    zf = Formulary()
-    for i in range(2, lastMode + 1):
-        idx = noll_to_zern(i)
-        idstr = str(idx[0]) + str(idx[1])
-        zzz = sp.symbols('Z_' + idstr)
-        az = realZernike(n, m).subs({m: int(idx[1]), n: int(idx[0])})
-        zname = 'Z' + idstr
-        zf.addFormula(zname, (zzz, az, sp.Eq(zzz, az)))
-    return zf
+    def diffractedComplexZernike():
+        _rhs = 2 * Vnm().rhs * complexTangetialFunc().rhs / sp.sqrt(2)
+        _lhs = YnmD
+        return sp.Eq(_lhs, _rhs)
+
+
+    def checkOrthoPair():
+        f2c = sp.conjugate(f2)
+        _rhs = sp.Integral(f1 * f2 * rho, (rho, 0, 1), (theta, 0, 2 * sp.pi))
+        _lhs = dotInt
+        return sp.Eq(_lhs, _rhs)
+
+    
+    def circleDotProduct():
+        f2c = sp.conjugate(f2)
+        itR = sp.re(f1 * f2c * rho) / sp.S.Pi
+        itI = sp.im(f1 * f2c * rho) / sp.S.Pi
+        i1 = sp.N(sp.integrate(itR, (theta, 0, 2 * sp.pi), (rho, 0, 1)))
+        i2 = sp.N(sp.integrate(itI, (theta, 0, 2 * sp.pi), (rho, 0, 1)))
+        _rhs = i1 + sp.I * i2
+        _lhs = dotInt
+        return sp.Eq(_lhs, _rhs)
+
+    _zernikeFormulas = Formulary("Zernike",                                                                          
+                                   ['cCoeff',
+                                    'tangetialFunc',
+                                    'complexTangetialFunc',
+                                    'radialFunc',
+                                    'realZernike',
+                                    'realZernikeCartesian',
+                                    'realZernikeNormalized',
+                                    'complexZernike',
+                                    'complexZernikeNormalized',
+                                    #'realZFromComplexZ',
+                                    '_vlj',
+                                    'Vnm',
+                                    'diffractedZernikeAtFocus',
+                                    'diffractedComplexZernikeAtFocus',   
+                                    'diffractedZernike',
+                                    'diffractedComplexZernike',
+                                    'checkOrthoPair',
+                                    #'checkZernikeOrthoPair',
+                                    'circleDotProduct',
+#                                    'zernikeAnalysysReal',
+#                                    'zernikeSynthesysReal',
+#                                    'zernikeAnalysysComplex',
+#                                    'zernikeSynthesysComplex',
+                                    #'capital_v_vector',
+#                                    'createZernikeFormulary'
+                                   ],
+                                  [  cCoeff(),
+                                     tangetialFunc(),
+                                     complexTangetialFunc(),
+                                     radialFunc(),
+                                     realZernike(),
+                                     realZernikeCartesian(),
+                                     realZernikeNormalized(),
+                                     complexZernike(),
+                                     complexZernikeNormalized(),
+                                     #realZFromComplexZ(),
+                                     _vlj(),
+                                     Vnm(),
+                                     diffractedZernikeAtFocus(),
+                                     diffractedComplexZernikeAtFocus(),
+                                     diffractedZernike(),
+                                     diffractedComplexZernike(),
+                                     checkOrthoPair(),
+                                     #checkZernikeOrthoPair(),
+                                     circleDotProduct(),
+#                                     zernikeAnalysysReal(),
+#                                     zernikeSynthesysReal(),
+#                                     zernikeAnalysysComplex(),
+#                                     zernikeSynthesysComplex(),
+                                     #capital_v_vector(),
+#                                     createZernikeFormularyOld()
+                                  ])
+
+    return _zernikeFormulas
+
+
+zernikeFormulas = createZernikeFormulary()
 
 
 def getZernikeDomain(nn):
@@ -260,7 +292,7 @@ def getZernikeDomain(nn):
     rr = np.sqrt(X1**2 + Y1**2)
     rr[np.where(rr > 1.0)] = np.nan
     return rr, np.arctan2(Y1, X1)
-
+    
 
 def evaluateZernike(zerninke_mode_expression, sampling_points):
     zerninke_mode_lambda = sp.lambdify(
@@ -273,3 +305,83 @@ def evaluateZernike(zerninke_mode_expression, sampling_points):
     Y1 = r1 * np.cos(theta1)
     Z1 = np.asarray(zerninke_mode_lambda(r1, theta1))
     return X1, Y1, Z1
+
+'''
+    def checkZernikeOrthoPair(n1, m1, n2, m2):
+        f1 = realZernikeNormalized(n1, m1)
+        f2 = realZernikeNormalized(n2, m2)
+        _rhs = checkOrthoPair(f1, f2)
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
+
+    # inputFunction defined over the unit disc, in ro, theta
+    def zernikeAnalysysReal(inputFunction, max_noll):
+        result = [0] * max_noll
+        for ni in range(max_noll):
+            nn, mm = noll_to_zern(ni + 1)
+            z_ni = realZernikeNormalized(n, m).subs({m: int(mm), n: int(nn)})
+            result[ni] = circleDotProduct(inputFunction, z_ni).rhs
+            print(ni + 1, nn, mm, result[ni] / emValue(mm))
+        _rhs = result
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
+
+    def zernikeSynthesysReal(decomposition):
+        result = sp.S(0)
+        for ni, coefficient in enumerate(decomposition):
+            nn, mm = noll_to_zern(ni + 1)
+            z_ni = realZernikeNormalized(n, m).subs({m: int(mm), n: int(nn)})
+            result += coefficient * z_ni
+            print(ni + 1, nn, mm, coefficient)
+        _rhs = result
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
+
+
+    def zernikeAnalysysComplex(inputFunction, max_noll):
+        result = [0] * max_noll
+        for ni in range(max_noll):
+            nn, mm = noll_to_zern(ni + 1)
+            z_ni = complexZernikeNormalized(n, m).subs({m: mm, n: nn})
+            result[ni] = circleDotProduct(inputFunction, z_ni)
+            print(ni + 1, nn, mm, result[ni])
+        _rhs = result
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
+
+
+    def zernikeSynthesysComplex(decomposition):
+        result = sp.S(0)
+        for ni, coefficient in enumerate(decomposition):
+            nn, mm = noll_to_zern(ni + 1)
+            z_ni = complexZernikeNormalized(n, m).subs({m: mm, n: nn})
+            result += coefficient * z_ni
+            print(ni + 1, nn, -mm, coefficient)
+        _rhs = result
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
+
+
+    def capital_v_vector(max_noll, f):
+        result = [0] * max_noll
+        for ni in range(max_noll):
+            nn, mm = noll_to_zern(ni + 1)
+            z_ni = CVVZernike(nn, mm, rho, theta)
+            result[ni] = z_ni
+        _rhs = result
+        _lhs = Cnm
+        return sp.Eq(_lhs, _rhs)
+        
+        
+    def createZernikeFormularyOld(lastMode):
+        zf = Formulary()
+        for i in range(2, lastMode + 1):
+            idx = noll_to_zern(i)
+            idstr = str(idx[0]) + str(idx[1])
+            zzz = sp.symbols('Z_' + idstr)
+            az = realZernike(n, m).subs({m: int(idx[1]), n: int(idx[0])})
+            zname = 'Z' + idstr
+            zf.addFormula(zname, (zzz, az, sp.Eq(zzz, az)))
+        return zf
+'''
+

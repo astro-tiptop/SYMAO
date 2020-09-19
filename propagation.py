@@ -13,22 +13,31 @@ def createPropagationFormulary(
         infinite_domain=False,
         circleLimits=True):
     
-    x0, y0 = sp.symbols('x_0, y_0', real=True)
-    x1, y1 = sp.symbols('x_1, y_1', real=True)
-    z1, focal, rho, r1, r0, u = sp.symbols('z_1 f rho r_1 r_0 u', positive=True)
-    theta0, theta1 = sp.symbols('theta_0 theta_1', real=True)
-    k, ll, a = sp.symbols('k lambda a', real=True, positive=True)
-
-    #ez0 = sp.Function('E_0')(x0, y0)
-    #ez0r = sp.Function('E_0r')(r0, theta0)
-
-    ez0 = sp.symbols('E_0')
-    ez0r = sp.symbols('E_0r')
-
+    x0, y0, x1, y1, theta0, theta1 = sp.symbols('x_0, y_0 x_1, y_1 theta_0 theta_1', real=True)
+    k, ll, a, z1, focal, rho, r1, r0, u, FN = sp.symbols('k lambda a z_1 f rho r_1 r_0 u FN', real=True, positive=True)
+    ez0, ez0r = sp.symbols('E_0 E_0r')
     ez1 = sp.Function('E_1')(x1, y1, z1)
     ez1r = sp.Function('E_1r')(r1, theta1, z1)
 
     k = 2 * sp.S.Pi / ll
+    
+    def xyCircle():
+        rrr = sp.S(1) - (x0 / sp.S(a))**sp.S(2) - (y0 / sp.S(a))**sp.S(2)
+        return (rrr / sp.Abs(rrr) + 1) / 2
+
+
+    def xyLens():
+        ffn = FN * a * 2
+        kl = sp.S(2) * sp.pi / ll
+        rr1 = x0**sp.S(2) + y0**sp.S(2)
+        return sp.exp(- sp.I * (kl * rr1 / (2 * ffn)))
+
+
+    def rLens():
+        ffn = FN * a * 2
+        kl = sp.S(2) * sp.pi / sp.S(ll)
+        return sp.exp(-sp.I * (kl / (2 * ffn)) * (r0**2))
+
 
     def getPropagationMethod(
             approximation="Rayleigh-Sommerfeld",
@@ -36,8 +45,7 @@ def createPropagationFormulary(
             cartesian=False,
             circleLimits=True):
 
-        _cartesian_circle_limits = (
-            x0, -a, a), (y0, -sp.sqrt(sp.Abs(a * a - x0 * x0)), sp.sqrt(sp.Abs(a * a - x0 * x0)))
+        _cartesian_circle_limits = (x0, -a, a), (y0, -sp.sqrt(sp.Abs(a * a - x0 * x0)), sp.sqrt(sp.Abs(a * a - x0 * x0)))
         _cartesian_limits = (x0, -a, a), (y0, -a, a)
         _radial_limits = (theta0, 0, sp.S(2) * sp.S.Pi), (r0, 0, a)
         _cartesian_limits_inf = (x0, -sp.oo, sp.oo), (y0, -sp.oo, sp.oo)
@@ -143,28 +151,15 @@ def createPropagationFormulary(
             appr, infinite_domain, cartesian, circleLimits)
         _integral = sp.Integral(_integrand, *_limits)
         if cartesian:
-            prop_f.addFormula(appr, (ez1, _integral, sp.Eq(ez1, _integral)))
+            prop_f.addFormula(appr, sp.Eq(ez1, _integral))
         else:
-            prop_f.addFormula(appr, (ez1r, _integral, sp.Eq(ez1r, _integral)))
+            prop_f.addFormula(appr, sp.Eq(ez1r, _integral))
+
+    prop_f.addFormula('xyCircle', xyCircle() )
+    prop_f.addFormula('xyLens', xyLens() )
+    prop_f.addFormula('rLens', rLens() )
+    
     return prop_f
-
-
-def xyCircle(xx1, xx2, aaa):
-    rrr = sp.S(1) - (xx1 / sp.S(aaa))**sp.S(2) - (xx2 / sp.S(aaa))**sp.S(2)
-    return (rrr / sp.Abs(rrr) + 1) / 2
-
-
-def xyLens(xx1, xx2, aaa, ll1, fn=10):
-    f = fn * aaa * 2
-    k = sp.S(2) * sp.pi / ll1
-    rr1 = xx1**sp.S(2) + xx2**sp.S(2)
-    return sp.exp(- sp.I * (k * rr1 / (2 * f)))
-
-
-def rLens(r1a, aaa, lll, fn=10):
-    f = fn * aaa * 2
-    k = sp.S(2) * sp.pi / sp.S(lll)
-    return sp.exp(-sp.I * (k / (2 * f)) * (r1a**2))
 
 
 '''
