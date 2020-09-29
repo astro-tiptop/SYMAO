@@ -1,7 +1,7 @@
 import numpy as np
 import sympy as sp
 
-from SEEING.seeing import *
+from seeing import *
 
 
 def noll_to_zern(jj):

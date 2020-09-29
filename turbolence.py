@@ -4,7 +4,7 @@ import time
 import random
 import sympy as sp
 
-from SEEING.seeing import *
+from seeing import *
 
 def createTurbolenceFormulary():
     #R_q = sp.Function("\U0000211B_q")(r)

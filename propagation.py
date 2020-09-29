@@ -1,5 +1,4 @@
-from SEEING.formulary import *
-from SEEING.sympyHelpers import *
+from seeing import *
 
 approximations = [
     "Rayleigh-Sommerfeld",
@@ -41,7 +40,7 @@ def createPropagationFormulary(
 
     def getPropagationMethod(
             approximation="Rayleigh-Sommerfeld",
-            full_integral=False,
+            infinite_domain=False,
             cartesian=False,
             circleLimits=True):
 
@@ -52,12 +51,12 @@ def createPropagationFormulary(
         _radial_limits_inf = [(r0, 0, sp.oo)]
 
         if not cartesian:
-            if full_integral:
+            if infinite_domain:
                 _limits = _radial_limits_inf
             else:
                 _limits = _radial_limits
         else:
-            if full_integral:
+            if infinite_domain:
                 _limits = _cartesian_limits_inf
             else:
                 if circleLimits:
@@ -134,10 +133,10 @@ def createPropagationFormulary(
 
         _name = approximation + "Integral"
         if cartesian:
-            _name += ', ' + "cartesian csp.oords"
+            _name += ', ' + "cartesian coords"
         else:
-            _name += ', ' + "cilyndrical csp.oords"
-        if full_integral:
+            _name += ', ' + "cilyndrical coords"
+        if infinite_domain:
             _name += ', ' + "infinite domain"
         else:
             _name += ', ' + "finite domain"
