@@ -63,15 +63,12 @@ def createZernikeFormulary():
     f1 = sp.Function("f_1")(rho, theta)
     f2 = sp.Function("f_2")(rho, theta)
 
-    
-    
     # Real Zernike Polynomials
     def cCoeff():
         _rhs = sp.Piecewise((sp.sqrt(n + 1), m == 0),
                             (sp.sqrt(2 * (n + 1)), m != 0))
         _lhs = Cnm
         return sp.Eq(_lhs, _rhs)
-
 
 
     def tangetialFunc():
@@ -90,9 +87,6 @@ def createZernikeFormulary():
     def radialFunc():
         ma = sp.Abs(m)
         p = (n - ma) / 2
-    # return sp.Piecewise( ( ((-1)**p) * (rho**ma) * sp.jacobi(p, ma, 0,
-    # 1-2*rho**2), sp.Eq(sp.Mod(n-m, 2), 0) ), (0, sp.Eq(sp.Mod(n-m, 2), 1) )
-    # )
         _rhs = ((-1)**p) * (rho**ma) * sp.jacobi(p, ma, 0, 1 - 2 * rho**2)
         _lhs = Rnm
         return sp.Eq(_lhs, _rhs)
@@ -116,7 +110,6 @@ def createZernikeFormulary():
         return sp.Eq(_lhs, _rhs)
 
     # Complex Zernike Polynomials
-
 
     def complexZernike():
         _rhs = sp.sqrt(2) * radialFunc().rhs * complexTangetialFunc().rhs / 2

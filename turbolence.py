@@ -40,7 +40,7 @@ def createTurbolenceFormulary():
 
     def phaseStructureFunctionOrig():
         _lhs = dPhi
-        _rhs = 6.88 * (sp.Abs(dx - v * dt) / r0) ** (sp.Rational(5.0 / 3.0))
+        _rhs = 6.88 * (sp.Abs(dx - v * dt) / r0) ** (sp.S(5) / sp.S(3))
         return sp.relational.Eq(_lhs, _rhs)
 
 

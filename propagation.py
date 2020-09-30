@@ -1,17 +1,18 @@
 from seeing import *
 
-approximations = [
+
+def createPropagationFormulary(
+        cartesian=False,
+        infinite_domain=False,
+        circleLimits=True):
+
+    approximations = [
     "Rayleigh-Sommerfeld",
     "Approximate Rayleigh-Sommerfeld",
     "Near Fresnel",
     "Far Fresnel",
     "Fraunhofer"]
 
-def createPropagationFormulary(
-        cartesian=False,
-        infinite_domain=False,
-        circleLimits=True):
-    
     x0, y0, x1, y1, theta0, theta1 = sp.symbols('x_0, y_0 x_1, y_1 theta_0 theta_1', real=True)
     k, ll, a, z1, focal, rho, r1, r0, u, FN = sp.symbols('k lambda a z_1 f rho r_1 r_0 u FN', real=True, positive=True)
     ez0, ez0r = sp.symbols('E_0 E_0r')
@@ -70,7 +71,7 @@ def createPropagationFormulary(
         common_fresnel_term0 = (sp.exp(sp.I * k * z1) / (z1))
         common_fresnel_term1 = (k / (2 * sp.S.Pi * sp.I))
 
-    #    common_fresnel_term = ( k * sp.exp(sp.I*k*z1)/(sp.I*2*sp.S.Pi*z1) )
+#       common_fresnel_term = ( k * sp.exp(sp.I*k*z1)/(sp.I*2*sp.S.Pi*z1) )
         common_fresnel_term = common_fresnel_term0 * common_fresnel_term1
 
         iexpr4 = (common_fresnel_term) * sp.exp(sp.I * k * (r1**2) / (2 * z1)) * \
@@ -151,12 +152,15 @@ def createPropagationFormulary(
         _integral = sp.Integral(_integrand, *_limits)
         if cartesian:
             prop_f.addFormula(appr, sp.Eq(ez1, _integral))
+            prop_f.addFormula(appr+" Arg", _integral.function)
         else:
             prop_f.addFormula(appr, sp.Eq(ez1r, _integral))
 
-    prop_f.addFormula('xyCircle', xyCircle() )
-    prop_f.addFormula('xyLens', xyLens() )
-    prop_f.addFormula('rLens', rLens() )
+    if cartesian:
+        prop_f.addFormula('xyCircle', xyCircle() )
+        prop_f.addFormula('xyLens', xyLens() )
+    else:
+        prop_f.addFormula('rLens', rLens() )
     
     return prop_f
 
