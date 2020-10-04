@@ -275,6 +275,13 @@ def createZernikeFormulary():
     return _zernikeFormulas
 
 
+def cov_expr_jk(expr, jj_value, kk_value):
+    nj_value, mj_value = noll_to_zern(jj_value)
+    nk_value, mk_value = noll_to_zern(kk_value)
+    rexpr = subsParamsByName(expr, {'j': jj_value, 'k': kk_value, 'n_j': nj_value, 'm_j': abs(mj_value), 'n_k': nk_value, 'm_k': abs(mk_value)})
+    return rexpr
+
+
 zernikeFormulas = createZernikeFormulary()
 
 
