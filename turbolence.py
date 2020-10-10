@@ -225,11 +225,12 @@ def ft_PSD_phi(rrr0, N, frq_range, L0, l0, method='VonKarman'):
     (fx, fy) = np.meshgrid(fx, fx)
     f = np.sqrt(fx**2 + fy**2)
     if method == 'VonKarman':
-        (_, PSD_phi) = turbolenceFormulas.evaluateFormula('phaseSpatialPowerSpectrumVonKarman', {
-            'r_0': rrr0, 'L_0': L0, 'l_0': l0}, ['k'], [2 * np.pi * f], scipyext)
+        expr = turbolenceFormulas['phaseSpatialPowerSpectrumVonKarman'].rhs  
+        (_, PSD_phi) = evaluateFormula( expr, {'r_0': rrr0, 'L_0': L0, 'l_0': l0}, ['k'] , [2 * np.pi * f], cpulib)
     else:
-        (_, PSD_phi) = turbolenceFormulas.evaluateFormula(
-            'phaseSpatialPowerSpectrumKolmogorov', {'r_0': rrr0}, ['k'], [2 * np.pi * f], scipyext)
+        expr = turbolenceFormulas['phaseSpatialPowerSpectrumKolmogorov'].rhs 
+        (_, PSD_phi) = evaluateFormula( expr, {'r_0': rrr0}, ['k'],  [2 * np.pi * f], cpulib)
+        
     PSD_phi[int(N / 2), int(N / 2)] = 0
     return PSD_phi, del_f
 
