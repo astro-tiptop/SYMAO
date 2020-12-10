@@ -35,20 +35,20 @@ def createTurbolenceFormulary():
         with sp.evaluate(False):
             _rhs = ((0.423 * k**2 / sp.cos(gamma)) *
                     sp.Integral(cn2, (h, 0, sp.oo))) ** (-sp.S(3) / sp.S(5))
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseStructureFunctionOrig():
         _lhs = dPhi
         _rhs = 6.88 * (sp.Abs(dx - v * dt) / r0) ** (sp.S(5) / sp.S(3))
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseStructureFunctionOrig_r():
         _lhs = dPhi_r
         with sp.evaluate(False):
             _rhs = 6.88 * (r / r0)**(sp.S(5) / sp.S(3))
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseStructureFunction():
@@ -66,7 +66,7 @@ def createTurbolenceFormulary():
             (frac6 * sp.gamma(frac7)) ** frac2
         _rhs = D_expr = c_expr * (L0 / r0)**frac1 * (sp.gamma(frac2) / sp.S(2)**frac3 - (
             2 * sp.pi * r / L0)**frac2 * sp.besselk(frac2, 2 * sp.pi * r / L0))
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseVariance():
@@ -82,7 +82,7 @@ def createTurbolenceFormulary():
             (frac6 * sp.gamma(frac7)) ** frac2
         _rhs = C_expr = (L0 / r0) ** frac1 * (c_expr / 2) * (2 *
                                                              sp.pi * r / L0)**frac2 * sp.besselk(frac2, 2 * sp.pi * r / L0)
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     #P_expr = 0.00058 * r0**(-sp.S(5)/sp.S(3)) * (f**2 + (1/L0**2)) ** ( -sp.S(11) / sp.S(6) )
@@ -91,7 +91,7 @@ def createTurbolenceFormulary():
         with sp.evaluate(False):
             _rhs = 0.0229 * r0**(-sp.S(5) / sp.S(3)) * k ** (-sp.S(11) / sp.S(3))
 
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseSpatialPowerSpectrumVonKarmanO():
@@ -101,7 +101,7 @@ def createTurbolenceFormulary():
             _rhs = 0.0229 * r0**(-sp.S(5) / sp.S(3)) * \
                 (k**2 + k0**2) ** (-sp.S(11) / sp.S(6))
 
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseSpatialPowerSpectrumVonKarmanO_f():
@@ -111,7 +111,7 @@ def createTurbolenceFormulary():
             _rhs = 0.0229 * r0**(-sp.S(5) / sp.S(3)) * \
                 (f**2 + f0**2) ** (-sp.S(11) / sp.S(6))
 
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
 
 
     def phaseSpatialPowerSpectrumVonKarman():
@@ -123,7 +123,7 @@ def createTurbolenceFormulary():
             _rhs = 0.0229 * r0**(-sp.S(5) / sp.S(3)) * (k**2 + k0 **
                                                         2) ** (-sp.S(11) / sp.S(6)) * sp.exp(-(k * l0 / 5.92)**2)
 
-        return sp.relational.Eq(_lhs, _rhs)
+        return sp.core.relational.Eq(_lhs, _rhs)
     
     '''
     def r0_to_seeing(r0, lamda=500.E-9):
