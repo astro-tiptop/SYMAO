@@ -1,7 +1,9 @@
 import numpy as np
 import sympy as sp
 
-from seeing import *
+from seeing.sympyHelpers import *
+from seeing.formulary import *
+from seeing.integrator import *
 
 
 def noll_to_zern(jj):

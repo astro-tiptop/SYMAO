@@ -1,4 +1,6 @@
-from seeing import *
+from seeing.sympyHelpers import *
+from seeing.formulary import *
+from seeing.integrator import *
 
 
 def createPropagationFormulary(
