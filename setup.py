@@ -19,7 +19,7 @@ setup(name='symao',
       install_requires=[
           "numpy",
           "scipy",
-          "simpy",
+          "sympy",
           "seeing",
       ]
       )
