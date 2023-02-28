@@ -284,9 +284,6 @@ def cov_expr_jk(expr, jj_value, kk_value):
     return rexpr
 
 
-zernikeFormulas = createZernikeFormulary()
-
-
 def getZernikeDomain(nn):
     x1 = np.linspace(-1.0, 1.0, nn)
     y1 = np.linspace(-1.0, 1.0, nn)

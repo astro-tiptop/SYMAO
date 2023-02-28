@@ -200,8 +200,6 @@ def createTurbolenceFormulary():
     return _turbolenceFormulas
 
 
-turbolenceFormulas = createTurbolenceFormulary()
-
 pplib = {
     'factorial': factorial,
     'binomial': binom,
