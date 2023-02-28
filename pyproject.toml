@@ -21,7 +21,7 @@ dependencies = [
 dynamic = ["version"]
 
 [tool.setuptools.packages]
-find = {}
+find = {namespaces = false}
 
 [tool.setuptools_scm]
 write_to = "symao/_version.py"
