@@ -219,23 +219,23 @@ def ft_ift2(G, delta_f):
     return g
 
 
-def ft_PSD_phi(rrr0, N, frq_range, L0, l0, method='VonKarman'):
+def ft_PSD_phi(tf, rrr0, N, frq_range, L0, l0, method='VonKarman'):
     del_f = frq_range / N
     fx = np.arange(-N / 2., N / 2.) * del_f
     (fx, fy) = np.meshgrid(fx, fx)
     f = np.sqrt(fx**2 + fy**2)
     if method == 'VonKarman':
-        expr = turbolenceFormulas['phaseSpatialPowerSpectrumVonKarman'].rhs  
+        expr = tf['phaseSpatialPowerSpectrumVonKarman'].rhs  
         (_, PSD_phi) = evaluateFormula( expr, {'r_0': rrr0, 'L_0': L0, 'l_0': l0}, ['k'] , [2 * np.pi * f], cpulib)
     else:
-        expr = turbolenceFormulas['phaseSpatialPowerSpectrumKolmogorov'].rhs 
+        expr = tf['phaseSpatialPowerSpectrumKolmogorov'].rhs 
         (_, PSD_phi) = evaluateFormula( expr, {'r_0': rrr0}, ['k'],  [2 * np.pi * f], cpulib)
         
     PSD_phi[int(N / 2), int(N / 2)] = 0
     return PSD_phi, del_f
 
 
-def ft_phase_screen(rrr0, N, delta, L0, l0, method='VonKarman', seed=None):
+def ft_phase_screen(tf, rrr0, N, delta, L0, l0, method='VonKarman', seed=None):
     delta = float(delta)
     R = random.SystemRandom(time.time())
     if seed is None:
@@ -243,18 +243,9 @@ def ft_phase_screen(rrr0, N, delta, L0, l0, method='VonKarman', seed=None):
     np.random.seed(seed)
     frq_range = 1.0 / delta
     del_f = frq_range / N
-    PSD_phi = ft_PSD_phi(rrr0, N, frq_range, L0, l0, method)
-    cn = (
-        (np.random.normal(
-            size=(
-                N,
-                N)) +
-         1j *
-         np.random.normal(
-            size=(
-                N,
-                N))) *
-        np.sqrt(PSD_phi[0]) *
-        del_f)
+    PSD_phi = ft_PSD_phi(tf, rrr0, N, frq_range, L0, l0, method)
+    M1 = np.random.normal(size=( int(N), int(N)))
+    M2 = np.random.normal(size=( int(N), int(N)))
+    cn = ( M1 + 1j * M2 ) *  np.sqrt(PSD_phi[0]) *  del_f
     phs = ft_ift2(cn, 1).real
     return phs
