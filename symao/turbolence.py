@@ -53,7 +53,7 @@ def createTurbolenceFormulary():
         return sp.core.relational.Eq(_lhs, _rhs)
 
 
-    def phaseStructureFunction():
+    def phaseStructureFunctionVonKarman0():
         _lhs = dPhi_r
         expr0 = c * (L0 / r0)**(sp.S(5) / sp.S(3)) * \
             sp.gamma(sp.S(5) / sp.S(6)) / (sp.S(2)**(sp.S(1) / sp.S(6)))
@@ -71,7 +71,7 @@ def createTurbolenceFormulary():
         return sp.core.relational.Eq(_lhs, _rhs)
 
 
-    def phaseVariance():
+    def phaseVarianceVonKarman0():
         _lhs = cPhi_r
         frac1 = sp.S(5) / sp.S(3)
         frac2 = sp.S(5) / sp.S(6)
@@ -85,6 +85,19 @@ def createTurbolenceFormulary():
         _rhs = C_expr = (L0 / r0) ** frac1 * (c_expr / 2) * (2 *
                                                              sp.pi * r / L0)**frac2 * sp.besselk(frac2, 2 * sp.pi * r / L0)
         return sp.core.relational.Eq(_lhs, _rhs)
+    
+    
+    def varianceVonKarman0():
+#        return phaseVarianceVonKarman0().rhs.subs({r:sp.S(0)})
+        frac1 = sp.S(5) / sp.S(3)
+        frac2 = sp.S(5) / sp.S(6)
+        frac3 = sp.S(1) / sp.S(6)
+        frac4 = sp.S(11) / sp.S(6)
+        frac5 = sp.S(8) / sp.S(3)
+        frac6 = sp.S(24) / sp.S(5)
+        frac7 = sp.S(6) / sp.S(5)
+        _expr = sp.gamma(frac2) * sp.gamma(frac4) * ( frac6 * sp.gamma(frac7) ) ** frac2 * ((r0/(L0)) ** (-frac1)) / (2 * sp.pi**frac5 )
+        return _expr
 
 
     #P_expr = 0.00058 * r0**(-sp.S(5)/sp.S(3)) * (f**2 + (1/L0**2)) ** ( -sp.S(11) / sp.S(6) )
@@ -96,7 +109,7 @@ def createTurbolenceFormulary():
         return sp.core.relational.Eq(_lhs, _rhs)
 
 
-    def phaseSpatialPowerSpectrumVonKarmanO():
+    def phaseSpatialPowerSpectrumVonKarman0():
         _lhs = pPhi
         k0 = 2 * sp.pi / L0
         with sp.evaluate(False):
@@ -106,11 +119,32 @@ def createTurbolenceFormulary():
         return sp.core.relational.Eq(_lhs, _rhs)
 
 
-    def phaseSpatialPowerSpectrumVonKarmanO_f():
+    def phaseSpatialPowerSpectrumVonKarman0_f():
         _lhs = wPhi
         f0 = 1 / L0
         with sp.evaluate(False):
             _rhs = 0.0229 * r0**(-sp.S(5) / sp.S(3)) * \
+                (f**2 + f0**2) ** (-sp.S(11) / sp.S(6))
+
+        return sp.core.relational.Eq(_lhs, _rhs)
+
+    def phaseSpatialPowerSpectrumGeneric_f():
+        _lhs = wPhi
+        f0 = 1.0 / 32.0
+        e1 = (-sp.S(11) / sp.S(10))
+        #e1 = -sp.S(1)
+        with sp.evaluate(False):
+            _rhs = 0.01 * r0**(-sp.S(5) / sp.S(3)) * \
+                (f**2 + f0**2) ** e1
+
+        return sp.core.relational.Eq(_lhs, _rhs)
+
+    
+    def phaseSpatialPowerSpectrumVonKarman0_ff():
+        _lhs = wPhi
+        f0 = 1 / L0
+        with sp.evaluate(False):
+            _rhs = f * 0.0229 * r0**(-sp.S(5) / sp.S(3)) * \
                 (f**2 + f0**2) ** (-sp.S(11) / sp.S(6))
 
         return sp.core.relational.Eq(_lhs, _rhs)
@@ -178,22 +212,28 @@ def createTurbolenceFormulary():
                                     'FriedParameter',
                                     'phaseStructureFunctionOrig',
                                     'phaseStructureFunctionOrig_r',
-                                    'phaseStructureFunction',
-                                    'phaseVariance',
+                                    'phaseStructureFunctionVonKarman0',
+                                    'phaseVarianceVonKarman0',
+                                    'varianceVonKarman0',
                                     'phaseSpatialPowerSpectrumKolmogorov',
-                                    'phaseSpatialPowerSpectrumVonKarmanO',
-                                    'phaseSpatialPowerSpectrumVonKarmanO_f',
+                                    'phaseSpatialPowerSpectrumVonKarman0',
+                                    'phaseSpatialPowerSpectrumGeneric_f',
+                                    'phaseSpatialPowerSpectrumVonKarman0_f',
+                                    'phaseSpatialPowerSpectrumVonKarman0_ff',
                                     'phaseSpatialPowerSpectrumVonKarman'],
                                    [ReynoldsNumber(),
                                        innerScale(),
                                        FriedParameter(),
                                        phaseStructureFunctionOrig(),
                                        phaseStructureFunctionOrig_r(),
-                                       phaseStructureFunction(),
-                                       phaseVariance(),
+                                       phaseStructureFunctionVonKarman0(),
+                                       phaseVarianceVonKarman0(),
+                                       varianceVonKarman0(),
                                        phaseSpatialPowerSpectrumKolmogorov(),
-                                       phaseSpatialPowerSpectrumVonKarmanO(),
-                                       phaseSpatialPowerSpectrumVonKarmanO_f(),
+                                       phaseSpatialPowerSpectrumVonKarman0(),
+                                       phaseSpatialPowerSpectrumGeneric_f(),
+                                       phaseSpatialPowerSpectrumVonKarman0_f(),
+                                       phaseSpatialPowerSpectrumVonKarman0_ff(),
                                        phaseSpatialPowerSpectrumVonKarman()])
 
 
@@ -249,3 +289,31 @@ def ft_phase_screen(tf, rrr0, N, delta, L0, l0, method='VonKarman', seed=None):
     cn = ( M1 + 1j * M2 ) *  np.sqrt(PSD_phi[0]) *  del_f
     phs = ft_ift2(cn, 1).real
     return phs
+
+
+def ft_PSD_phi_VonKarman0(tf, rrr0, N, frq_range, L0):
+    del_f = frq_range / N
+    fx = np.arange(-N / 2., N / 2.) * del_f
+    (fx, fy) = np.meshgrid(fx, fx)
+    f = np.sqrt(fx**2 + fy**2)    
+    expr = tf['phaseSpatialPowerSpectrumVonKarman0'].rhs  
+    (_, PSD_phi) = evaluateFormula( expr, {'r_0': rrr0, 'L_0': L0}, ['k'] , [2 * np.pi * f], cpulib)        
+    PSD_phi[int(N / 2), int(N / 2)] = 0
+    return PSD_phi, del_f
+
+
+def ft_phase_screen0(tf, rrr0, N, delta, L0, seed=None):
+    delta = float(delta)
+    R = random.SystemRandom(time.time())
+    if seed is None:
+        seed = int(R.random() * 100000)
+    np.random.seed(seed)
+    frq_range = 1.0 / delta
+    del_f = frq_range / N
+    PSD_phi, del_f = ft_PSD_phi_VonKarman0(tf, rrr0, N, frq_range, L0)
+    M1 = np.random.normal(size=( int(N), int(N)))
+    M2 = np.random.normal(size=( int(N), int(N)))
+    cn = ( M1 + 1j * M2 ) *  np.sqrt(PSD_phi) *  del_f
+    phs = ft_ift2(cn, 1).real
+    return phs, PSD_phi, del_f
+
