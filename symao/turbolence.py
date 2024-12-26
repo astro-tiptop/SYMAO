@@ -162,35 +162,35 @@ def createTurbolenceFormulary():
         return sp.core.relational.Eq(_lhs, _rhs)
     
     '''
-    def r0_to_seeing(r0, lamda=500.E-9):
-        return (0.98*lamda/r0)*180.*3600./np.pi
+    def r0_to_seeing(r0, wvl=500.E-9):
+        return (0.98*wvl/r0)*180.*3600./np.pi
 
-    def r0_to_cn2(r0, lamda=500.E-9):
-        cn2 = r0**(-5./3.)/(0.423*(2*np.pi/lamda)**2)
+    def r0_to_cn2(r0, wvl=500.E-9):
+        cn2 = r0**(-5./3.)/(0.423*(2*np.pi/wvl)**2)
         return cn2
 
-    def cn2_to_r0(cn2, lamda=500.E-9):
-        r0=(0.423*(2*np.pi/lamda)**2*cn2)**(-3./5.)
+    def cn2_to_r0(cn2, wvl=500.E-9):
+        r0=(0.423*(2*np.pi/wvl)**2*cn2)**(-3./5.)
         return r0
 
-    def cn2_to_seeing(cn2, lamda=500.E-9):
-        r0 = cn2_to_r0(cn2,lamda)
-        seeing = r0_to_seeing(r0,lamda)
+    def cn2_to_seeing(cn2, wvl=500.E-9):
+        r0 = cn2_to_r0(cn2,wvl)
+        seeing = r0_to_seeing(r0,wvl)
         return seeing
 
-    def seeing_to_cn2(seeing, lamda=500.E-9):
-        r0 = seeing_to_r0(seeing,lamda)
-        cn2 = r0_to_cn2(r0,lamda)
+    def seeing_to_cn2(seeing, wvl=500.E-9):
+        r0 = seeing_to_r0(seeing,wvl)
+        cn2 = r0_to_cn2(r0,wvl)
         return cn2
 
-    def coherenceTime(cn2, v, lamda=500.E-9):
+    def coherenceTime(cn2, v, wvl=500.E-9):
         Jv = (cn2*(v**(5./3.))).sum()
-        tau0 = float((Jv**(-3./5.))*0.057*lamda**(6./5.))
+        tau0 = float((Jv**(-3./5.))*0.057*wvl**(6./5.))
         return tau0
 
-    def isoplanaticAngle(cn2, h, lamda=500.E-9):
+    def isoplanaticAngle(cn2, h, wvl=500.E-9):
         Jh = (cn2*(h**(5./3.))).sum()
-        iso = float(0.057*lamda**(6./5.)*Jh**(-3./5.)*180.*3600./np.pi)
+        iso = float(0.057*wvl**(6./5.)*Jh**(-3./5.)*180.*3600./np.pi)
         return iso
 
     def r0_from_slopes(slopes, wavelength, subapDiam):
@@ -258,6 +258,11 @@ def ft_ift2(G, delta_f):
     g = np.fft.fftshift(np.fft.ifft2(np.fft.fftshift(G))) * (N * delta_f)**2
     return g
 
+def ft_ft2(G, delta_f):
+    N = G.shape[0]
+    g = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(G))) /  (N * delta_f)**2
+    return g
+
 
 def ft_PSD_phi(tf, rrr0, N, frq_range, L0, l0, method='VonKarman'):
     del_f = frq_range / N
@@ -303,7 +308,6 @@ def ft_PSD_phi_VonKarman0(tf, rrr0, N, frq_range, L0):
 
 
 def ft_phase_screen0(tf, rrr0, N, delta, L0, seed=None):
-    delta = float(delta)
     R = random.SystemRandom(time.time())
     if seed is None:
         seed = int(R.random() * 100000)
@@ -315,5 +319,6 @@ def ft_phase_screen0(tf, rrr0, N, delta, L0, seed=None):
     M2 = np.random.normal(size=( int(N), int(N)))
     cn = ( M1 + 1j * M2 ) *  np.sqrt(PSD_phi) *  del_f
     phs = ft_ift2(cn, 1).real
-    return phs, PSD_phi, del_f
+    # psd_stat = np.absolute(ft_ft2(phs, 1)/del_f)**2
+    return phs, PSD_phi, del_f # , psd_stat
 
