@@ -16,7 +16,7 @@ dependencies = [
     "numpy",
     "scipy",
     "sympy",
-    "astro-seeing",
+    "astro-seeing>=1.2"
 ]
 dynamic = ["version"]
 
